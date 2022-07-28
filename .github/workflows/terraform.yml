@@ -1,44 +1,79 @@
-name: 'Terraform'
+name: "Terraform"
 
 on:
-  workflow_dispatch:
-    inputs:
-      choice:
-        type: choice
-        description: Do you wish to create or destroy the infrastructure?
-        options:
-        - create
-        - destroy
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
 
 jobs:
   terraform:
-    name: Terraform
+    name: "Terraform"
     runs-on: ubuntu-latest
-    environment: SANDBOX
-    defaults:
-      run:
-        shell: bash
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-1
+        
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        cli_config_credentials_token: ""
+#       - name: Terraform Format
+#         id: fmt
+#         run: terraform fmt -check
 
-    - name: Create Terraform Plan Artifact for Apply
-      if: contains(github.event.inputs.choice, 'create')
-      run: |
-        terraform init -backend-config="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
-          -backend-config="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-          -backend-config="region=us-east-1" \
-          -backend-config="bucket=rt-kiosk-assets" \
-          -backend-config="key=DEV/us-east-1/kiosk.tfstate"
+      - name: Terraform Init
+        id: init
+        run: terraform init
+      
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
 
-        export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
-        export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-        export AWS_REGION="${{ secrets.REGION }}"
-        terraform plan -out tfplan
-        terraform apply tfplan
+      - name: Terraform Plan
+        id: plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan -no-color -input=false
+        continue-on-error: true
+
+      - uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+
+            </details>
+
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve -input=false
