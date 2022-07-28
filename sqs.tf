@@ -1,4 +1,4 @@
-resource "aws_sqs_queue" "terraform_queue" {
+resource "aws_sqs_queue" "kiosk-sqs" {
   name                      = var.sqs-queue
   delay_seconds             = 90
   max_message_size          = 2048
@@ -11,7 +11,7 @@ resource "aws_sqs_queue" "terraform_queue" {
 }
 
 
-resource "aws_lambda_event_source_mapping" "example"{
-   event_source_arn = aws_sqs_queue.terraform_queue.arn 
-   function_name = aws_lambda_function.test_lambda.arn 
+resource "aws_lambda_event_source_mapping" "kiosk-sqs-lambdamapping"{
+   event_source_arn = aws_sqs_queue.kiosk-sqs.arn 
+   function_name = aws_lambda_function.kiosk-lambda.arn 
    }

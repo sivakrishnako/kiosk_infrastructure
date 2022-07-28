@@ -1,4 +1,4 @@
-resource "aws_cloudwatch_event_rule" "console" {
+resource "aws_cloudwatch_event_rule" "kiosk-event-bridge" {
   name        = "rt-s3-dailybatchdata-sqs-ebrrule-sqa-kiosk"
   description = "Capture each AWS Console s3 events"
 
@@ -18,9 +18,9 @@ EOF
 
 
 resource "aws_cloudwatch_event_target" "sqs" {
-  rule      = aws_cloudwatch_event_rule.console.name
+  rule      = aws_cloudwatch_event_rule.kiosk-event-bridge.name
   target_id = "SendToSQS"
-  arn       = aws_sqs_queue.terraform_queue.arn
+  arn       = aws_sqs_queue.kiosk-sqs.arn
 }
 
 
