@@ -3,11 +3,10 @@
 terraform.tfstate
 terraform.tfstate.backup
 Jenkinsfile
-Jenkins-destroy
 siva.yml
 vpc.tf
 ekscluster.tf
 ecr.tf
 ec2.tf
 demo.yml
-
+Jenkinsfile-destroy
