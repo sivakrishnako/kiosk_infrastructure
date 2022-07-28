@@ -1,0 +1,30 @@
+// pipeline {
+//   agent any
+//   stages {
+//     stage('INITIALIZING TERRAFORM') {
+//       steps {
+//         sh 'terraform init'
+//       }
+//     }
+//         stage('Terraform validate') {
+//       steps {
+//         sh 'terraform validate'
+//       }   
+//     }
+//     stage('Terraform Plan') {
+//       steps {
+//         sh 'terraform plan'
+//       }   
+//     }
+//     stage('Apply terraform') {
+//       steps {
+//         sh 'terraform apply --auto-approve'
+//       }   
+//     }
+//     stage('Destroy terraform') {
+//       steps {
+//         sh 'terraform destroy --auto-approve'
+//       }   
+//     }  
+// }
+// }
