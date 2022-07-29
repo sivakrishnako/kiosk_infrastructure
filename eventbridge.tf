@@ -20,7 +20,7 @@ EOF
 resource "aws_cloudwatch_event_target" "sqs" {
   rule      = aws_cloudwatch_event_rule.kiosk-event-bridge.name
   target_id = "SendToSQS"
-  arn       = aws_sqs_queue.kiosk-sqs.arn
+  arn       = aws_sqs_queue.this.arn
 }
 
 
