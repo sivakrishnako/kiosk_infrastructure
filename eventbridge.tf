@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_event_rule" "kiosk-event-bridge" {
-  name        = ${lower(local.local_data.tag_prefix)}-dailybatchdata-sqs-ebrule-${lower(local.local_data.tag_env)}-${lower(local.local_data.tag_project)}
+  name        = "${lower(local.local_data.tag_prefix)}-dailybatchdata-sqs-ebrule-${lower(local.local_data.tag_env)}-${lower(local.local_data.tag_project)}"
   description = "Capture each AWS Console s3 events"
 
   event_pattern = <<EOF
